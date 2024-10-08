@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(to right, #2a2a72, #009ffd);
+            color: #ffffff;
+            overflow-x: hidden; 
+        }
+        .container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+            background: rgba(255, 255, 255, 0.1);
+        }
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px; 
+        }
+        .pdf-upload, .chat-area, .info-container {
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            transition: transform 0.2s;
+        }
+        .pdf-upload:hover, .chat-area:hover, .info-container:hover {
+            transform: translateY(-5px);
+        }
+        .conversation {
+            display: flex;
+            flex-direction: column;
+            min-height: 300px;
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        .user-message, .bot-message {
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 10px;
+            max-width: 75%;
+            display: inline-block;
+            position: relative;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        .user-message {
+            align-self: flex-end;
+            background-color: #007bff; /* Blue for user messages */
+            color: white;
+        }
+        .bot-message {
+            align-self: flex-start;
+            background-color: #6c757d; /* Dark gray for bot messages */
+            color: white;
+        }
+        .input-group {
+            margin-top: 15px;
+        }
+        .input-group input {
+            border-radius: 20px;
+            border: 1px solid #ffffff;
+            transition: border-color 0.3s;
+            background: rgba(255, 255, 255, 0.3);
+            color: #ffffff;
+        }
+        .input-group input:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+        }
+        .btn {
+            border-radius: 20px;
+            transition: background-color 0.3s, transform 0.2s;
+            background-color: #007bff; /* Blue for buttons */
+            border: none;
+        }
+        .btn:hover {
+            background-color: #0056b3;
+            transform: scale(1.05);
+        }
+        .uploaded-file {
+            margin-top: 10px;
+            padding: 10px;
+            border: 1px solid #007bff;
+            background-color: rgba(0, 123, 255, 0.2);
+            border-radius: 5px;
+        }
+        h2, h4 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #ffffff;
+        }
+        .floating-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            transition: background-color 0.3s, transform 0.2s;
+        }
+        .floating-btn:hover {
+            background-color: #0056b3;
+            transform: scale(1.1);
+        }
+        .fa-arrow-right {
+            font-size: 24px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Chatbot</h2>
+        <div class="chat-container">
+            <div class="pdf-upload">
+                <h4>Upload PDF</h4>
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        {{ form.pdf_file.label }}
+                        {{ form.pdf_file }}
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">Upload</button>
+                </form>
+                {% if uploaded_file_name %}
+                    <div class="uploaded-file">
+                        <strong>Uploaded PDF:</strong> {{ uploaded_file_name }}
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="info-container">
+                <h4>Instructions & Tips</h4>
+                <p>Upload a PDF to get started, then chat with the bot by typing your questions!</p>
+                <p>Make sure your PDF is clear for better responses.</p>
+            </div>
+            
+            <div class="chat-area">
+                <h4>Chat with Me <span style="font-size: 24px;">😊</span></h4>
+                <div class="conversation">
+                    {% for item in conversation %}
+                        <div class="user-message">
+                            <strong>You:</strong> {{ item.question }}
+                        </div>
+                        <div class="bot-message">
+                            <strong>Bot:</strong> {{ item.response }}
+                        </div>
+                    {% endfor %}
+                </div>
+                <form method="post" class="mb-3">
+                    {% csrf_token %}
+                    <div class="input-group">
+                        <input type="text" name="question" class="form-control" placeholder="Interact with me... ❓" required>
+                        <button type="submit" class="floating-btn"><i class="fas fa-arrow-right"></i></button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.querySelector('.floating-btn').addEventListener('click', function(event) {
+            event.preventDefault(); // Prevent the default form submission
+            const input = document.querySelector('input[name="question"]');
+
+            if (input.value.trim() !== '') {
+                input.form.submit(); // Submit the form if the input is not empty
+                input.value = ''; // Clear the input field after submission
+            }
+        });
+    </script>
+</body>
+</html>
