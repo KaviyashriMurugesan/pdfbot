@@ -1,4 +1,5 @@
-PDF-Reading Chatbot
+                                       PDF-Reading Chatbot
+                                       
 Overview:
 This project is a PDF-reading chatbot built using Python, Django, pdfplumber, Langchain, and the Gemini language model from Google. 
 The chatbot allows users to upload PDF documents and ask questions about the content, providing informative responses based on the extracted text.
